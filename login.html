@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" , shrink-to-fit=no>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+    <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <script src="ejs.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.5.7/firebase.js"></script>
+    <script src="cordova.js"></script>
+    <script>
+        var config = {
+            apiKey: "AIzaSyAn6MsbK-EXDrWWANHjN_Mfh7MMTD0_VVo",
+            authDomain: "shopee-b3287.firebaseapp.com",
+        };
+        firebase.initializeApp(config);
+    </script>
+</head>
+
+<body>
+    <ons-page>
+        <div style="text-align: center; margin-top: 30px;">
+            <p>
+                <ons-input id="username" modifier="underbar" placeholder="Username" float></ons-input>
+            </p>
+            <p>
+                <ons-input id="password" modifier="underbar" type="password" placeholder="Password" float></ons-input>
+            </p>
+            
+            <p style="margin-top: 30px;">
+                <ons-button onclick="login()" style="width: 200px; background-color: rgb(251, 194, 71);">
+                    <i class="zmdi zmdi-email"></i>
+                    Sign in with email
+                </ons-button>
+            </p>
+            <p style="margin-top: 15px;">
+                <ons-button onclick="google()" style="width: 200px; background-color: rgb(219,50,54)">
+                    <i class="zmdi zmdi-google"></i>
+                    Sign in with Google
+                </ons-button>
+            </p>
+            <p style="margin-top: 15px;">
+                <ons-button onclick="facebook()" style="width: 200px; background-color: rgb(59,89,152);">
+                    <i class="zmdi zmdi-facebook"></i>
+                    Sign in with Facebook
+                </ons-button>
+            </p>
+            <p style="margin-top: 30px;">
+                <a href="register.html">Sign up for a new user</a>
+            </p>
+        </div>
+    </ons-page>
+
+    <ons-modal direction="up">
+        <div style="text-align: center">
+            <p>
+                <ons-icon icon="md-spinner" size="28px" spin></ons-icon> Signing in...
+            </p>
+        </div>
+    </ons-modal>
+</body>
+
+<script>
+    var modal = document.querySelector('ons-modal');
+    
+    var login = function () {
+        var username = document.getElementById('username').value;
+        var password = document.getElementById('password').value;
+
+        firebase.auth().signInWithEmailAndPassword(username, password).catch(function (error) {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            console.log(error.code + ':' + errorMessage);
+            ons.notification.alert('Login Failed');
+        });
+        modal.show();
+    };
+
+    function google() {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+
+        firebase.auth().signInWithRedirect(provider);
+        firebase.auth().getRedirectResult().then(function (result) {
+            if (result.credential) {
+                // This gives you a Google Access Token. You can use it to access the Google API.
+                var token = result.credential.accessToken;
+                // ...
+            }
+            // The signed-in user info.
+            var user = result.user;
+            console.log(user);
+        }).catch(function (error) {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            // The email of the user's account used.
+            var email = error.email;
+            // The firebase.auth.AuthCredential type that was used.
+            var credential = error.credential;
+            // ...
+        });
+        modal.show();
+    }
+
+    function facebook() {
+        var provider = new firebase.auth.FacebookAuthProvider();
+        firebase.auth().signInWithRedirect(provider);
+        firebase.auth().getRedirectResult().then(function (result) {
+            if (result.credential) {
+                // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+                var token = result.credential.accessToken;
+                // ...
+            }
+            // The signed-in user info.
+            var user = result.user;
+        }).catch(function (error) {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            // The email of the user's account used.
+            var email = error.email;
+            // The firebase.auth.AuthCredential type that was used.
+            var credential = error.credential;
+            // ...
+        });
+        modal.show();
+    }
+
+    firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+            modal.show();
+            window.location.href = 'home.html';
+        }
+    });
+</script>
+
+</html>

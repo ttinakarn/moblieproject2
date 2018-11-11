@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" , shrink-to-fit=no>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+    <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+    <script src="ejs.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.5.7/firebase.js"></script>
+    <script src="cordova.js"></script>
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyAn6MsbK-EXDrWWANHjN_Mfh7MMTD0_VVo",
+            authDomain: "shopee-b3287.firebaseapp.com",
+            databaseURL: "https://shopee-b3287.firebaseio.com",
+            projectId: "shopee-b3287",
+            storageBucket: "shopee-b3287.appspot.com",
+            messagingSenderId: "222099191341"
+        };
+        firebase.initializeApp(config);
+
+        // Initialize Cloud Firestore through Firebase
+        var db = firebase.firestore();
+
+        // Disable deprecated features
+        db.settings({
+            timestampsInSnapshots: true
+        });
+    </script>
+    <title>PSU Mall</title>
+</head>
+
+<body>
+    <ons-navigator swipeable id="myNavigator">
+        <ons-page>
+            <ons-toolbar>
+                <div class="left">
+                    <i class="zmdi zmdi-fullscreen zmdi-hc-lg" style="color: orange; padding: 10px" onclick="scanQR()"></i>
+                </div>
+                <div class="center" id="appname">Home</div>
+                <div class="right">
+                    <i class="zmdi zmdi-power zmdi-hc-lg" style="color: orange; padding: 10px" onclick="app.showFromTemplate()"></i>
+                    <template id="action-sheet.html">
+                        <ons-action-sheet id="sheet" cancelable title="Do you want to sign out?">
+                            <ons-action-sheet-button onclick="logout()">Sign out</ons-action-sheet-button>
+                            <ons-action-sheet-button onclick="app.hideFromTemplate()">Cancel</ons-action-sheet-button>
+                        </ons-action-sheet>
+                    </template>
+                </div>
+            </ons-toolbar>
+
+            <ons-tabbar swipeable position="auto" id="tabbar">
+                <ons-tab page="tab1.html" label="Home" icon="ion-home, material:md-home" badge="5930213054" active>
+                </ons-tab>
+                <ons-tab page="tab2.html" label="Cart" icon="md-shopping-cart">
+                </ons-tab>
+                <ons-tab page="tab3.html" label="All Products" icon="md-apps">
+                </ons-tab>
+            </ons-tabbar>
+        </ons-page>
+    </ons-navigator>
+
+    <template id="tab1.html">
+        <ons-page id="Tab1">
+            <br>
+            <div style="text-align: center;">
+                <!-- <ons-search-input id="search" placeholder="Search" onchange="scanQR()"></ons-search-input> -->
+                <ons-search-input placeholder="Search" onchange="search(this.value);"></ons-search-input>
+            </div>
+            <br>
+            <ons-carousel swipeable auto-scroll overscrollable id="carousel" style="height: 300px;">
+                <ons-carousel-item id="carousel1"></ons-carousel-item>
+                <ons-carousel-item id="carousel2"></ons-carousel-item>
+                <ons-carousel-item id="carousel3"></ons-carousel-item>
+            </ons-carousel>
+            <br>
+            <div id="icons"></div>
+            <script id="icon_template" type="text/template">
+                <ons-row height="150px">
+                    <% categories.forEach(function(category){ %>
+                        <ons-col style="<%= category.style %>" width="33%" onclick="viewByCategory('<%= category.name %>');">
+                            <p style="text-align: center;  margin: 10px;">
+                                <i class="<%= category.icon %>"></i>
+                            </p>
+                            <p style="text-align: center;"><%= category.name %></p>
+                        </ons-col>
+                    <% }); %>
+                </ons-row>
+            </script>
+            <br>
+        </ons-page>
+    </template>
+
+    <template id="tab2.html">
+        <ons-page id="Tab2">
+            <ons-list>
+                <ons-list-header>Shopping cart</ons-list-header>
+                <div id="cart"></div>
+                <script id="cart_template" type="text/template">
+                    <% console.log(products)
+                        products.forEach(function(product){ %>
+                        <ons-list-item>
+                            <div class="left">
+                                <img src="<%= product.photo %>" style="height: 50px;">
+                            </div>
+                            <div class="center" style="margin: 10px;">
+                                <ons-row><b><%= product.title %></b></ons-row>
+                                <ons-row style="color: rgb(250, 96, 24)">฿<%= product.price %></ons-row>
+                            </div>
+                            <div class="right" onclick="removeFromCart('<%= product.title %>');">
+                                <i class="zmdi zmdi-delete zmdi-hc-2x" style="color: grey"></i>
+                                </div>
+                        </ons-list-item>
+                    <% }); %>
+                </script>
+            </ons-list>
+            <section style="padding: 8px">
+                <ons-button modifier="large" style="background-color: rgb(250, 96, 24)">PROCEED TO PAY</ons-button>
+            </section>
+        </ons-page>
+    </template>
+
+    <template id="tab3.html">
+        <ons-page id="Tab3">
+            <section style="padding: 8px">
+                <ons-button modifier="large" onclick="getProduct();" style="background-color: rgb(250, 96, 24);">View all products</ons-button>
+            </section>
+
+            <div id="cards"></div>
+            <script id="product_template" type="text/template">
+                <% products.forEach(function(product){;%> 
+                    <ons-card onclick="showDetail('<%= product.title %>');">
+                            <img src="<%= product.photo %>" alt="Onsen UI" style="width: 40%; display: block; margin-left: auto; margin-right: auto;">
+                        <p style="font-size: 17px;"><%= product.title %></p>
+                        <ons-row>
+                            <ons-col style="color: rgb(250, 96, 24); font-size: 20px; text-align: left;">฿<%= product.price %></ons-col>
+                        </ons-row>
+                    </ons-card>
+                <% }); %>
+            </script>
+        </ons-page>
+    </template>
+
+    <template id="detail.html">
+        <ons-page id="detail">
+            <ons-toolbar>
+                <div class="left"><ons-back-button></ons-back-button>Back</div>
+            </ons-toolbar>
+        
+            <div id="detailCard"></div>
+            <script id="detail_template" type="text/template">
+                <% product.forEach(function(product){
+                    var product = product.data();%> 
+                    <ons-card>
+                        <img src="<%= product.photo %>" alt="Onsen UI" style="width: 100%">
+                        <div class="title"><%= product.title %></div>
+                        <div style="color: rgb(250, 96, 24); font-size: 20px; text-align: left;">฿<%= product.price %></div><hr>
+                        <div><%= product.detail %></div><br>
+                        <section style="padding: 5px" onclick="addToCart('<%= product.title %>');">
+                            <ons-button modifier="large" style="background-color: rgb(250, 96, 24);">Add to cart</ons-button>
+                        </section>
+                    </ons-card>
+                <% }); %>
+            </script>
+        </ons-page>
+    </template>
+</body>
+<script>
+    getHomeData();
+    getProduct(null);
+    var cart = [];
+    var allProduct = [];
+    var searchProduct = [];
+
+    //อันนี้เป็นตัวเช็คว่าปุ่มไหนโดนกด
+    document.addEventListener('prechange', function (event) {
+        if (event.index == 0) {
+            console.log('Home clicked');
+            getHomeData();
+        }
+        else if (event.index == 1) {
+            console.log('Cart clicked');
+        }
+        else if (event.index == 2) {
+            console.log('All product clicked');
+            var category = localStorage.getItem("name");
+            getProduct(category);
+        }
+    });
+
+    function getHomeData() {
+        localStorage.clear();
+        var docRef = db.collection("UI").doc("home");
+
+        docRef.get().then(function (doc) {
+            if (doc.exists) {
+                var data = doc.data();
+                $('#appname').html(data.appname);
+                for (var i = 0; i < data.slides.length; i++) {
+                    let index = i + 1;
+                    var style = "background: url('" + data.slides[i] + "') no-repeat center; background-size: contain;";
+                    $('#carousel' + index).attr('style', style);
+                }
+                var icon_template = $('#icon_template').html();
+                html = ejs.render(icon_template, { categories: data.categories });
+                $('#icons').html(html);
+            }
+            else {
+                // doc.data() will be undefined in this case
+                console.log("No db.collection(UI).doc(home)");
+            }
+        }).catch(function (error) {
+            console.log("Error getting document:", error);
+        });
+    }
+    
+    function search(search) {
+        var category = localStorage.setItem("name", "search");
+        document.getElementById('tabbar').setActiveTab(2);
+        console.log(allProduct);
+        function filterItems(query) {
+            return allProduct.filter(function(el) {
+                return el.toLowerCase().indexOf(query.toLowerCase()) > -1;
+            })
+        }
+        console.log(filterItems(search));
+        searchProduct = filterItems(search);
+        console.log(searchProduct);
+    };
+
+    function scanQR() {
+        window.location.href = 'scan.html';
+    }
+
+    var app = {};
+    ons.ready(function () {
+        ons.createElement('action-sheet.html', { append: true })
+            .then(function (sheet) {
+                app.showFromTemplate = sheet.show.bind(sheet);
+                app.hideFromTemplate = sheet.hide.bind(sheet);
+            });
+    });
+
+    function addToCart(title) {
+        ons.notification.toast(title + 'has been added to your cart!', {
+        timeout: 2000
+        });
+        cart.push(title);
+        getCartData();
+    };
+
+    function getCartData() {
+        var cartData = [];
+        console.log('cart: ' + cart);
+        document.getElementById('cart').innerHTML = '';
+        cart.forEach(function(title){
+            var productRef = db.collection("PRODUCTS").where("title", "==", title);
+            productRef.get().then(function (querySnapshot) {
+                querySnapshot.forEach(function (doc) {
+                    cartData.push(doc.data());
+                });
+                var cart_template = $('#cart_template').html();
+                html = ejs.render(cart_template, { products: cartData });
+                $('#cart').html(html);
+            });
+        });
+    }
+
+    function viewByCategory(txt) {
+        localStorage.setItem("name", txt);
+        document.getElementById('tabbar').setActiveTab(2);
+    }
+
+    function getProduct(input) {      
+        var getAllProduct = [];  
+        var searchData = [];
+        var getCategory = [];
+        if (input == null) {
+            console.log('get all product');
+            var allProductRef = db.collection("PRODUCTS");
+            allProductRef.get().then(function (querySnapshot) {
+                querySnapshot.forEach(function (doc) {
+                    allProduct.push(doc.data().title);
+                    getAllProduct.push(doc.data());
+                });
+                var product_template = $('#product_template').html();
+                html = ejs.render(product_template, { products: getAllProduct });
+                // console.log(querySnapshot.docs);
+                $('#cards').html(html);
+            });
+        } else if (input == 'search'){
+            
+            console.log(searchProduct);
+            searchProduct.forEach(function(title){                
+                var allProductRef = db.collection("PRODUCTS").where("title", "==", title);
+                allProductRef.get().then(function (querySnapshot) {
+                    querySnapshot.forEach(function (doc) {
+                        searchData.push(doc.data());
+                    });
+                    var product_template = $('#product_template').html();
+                    html = ejs.render(product_template, { products: searchData });
+                    console.log(querySnapshot.docs);
+                    $('#cards').html(html);
+                });
+            });
+        } else {
+            
+            console.log('view by category: ' + input);
+            input = input.toLowerCase();
+            var allProductRef = db.collection("PRODUCTS").where("category", "==", input);
+            allProductRef.get().then(function (querySnapshot) {
+                querySnapshot.forEach(function (doc) {
+                    getCategory.push(doc.data());
+                });
+                var product_template = $('#product_template').html();
+                html = ejs.render(product_template, { products: getCategory });
+                console.log(querySnapshot.docs);
+                $('#cards').html(html);
+            });
+        }
+        localStorage.clear();
+    }
+
+    function showDetail(title) {
+        var productRef = db.collection("PRODUCTS").where("title", "==", title);
+        console.log(productRef);
+        productRef.get().then(function (querySnapshot) {
+            var detail_template = $('#detail_template').html();
+            html = ejs.render(detail_template, { product: querySnapshot.docs });
+            console.log(querySnapshot.docs);
+            $('#detailCard').html(html);
+        });
+        myNavigator.pushPage('detail.html');
+    };
+
+    function removeFromCart(i){
+        console.log(cart);
+        var index = cart.indexOf(i);
+        console.log(index);
+        if (index > -1) {
+            cart.splice(index, 1);
+        }
+        getCartData();
+    }
+
+    function logout() {
+        firebase.auth().signOut().then(function () {
+            ons.notification.alert('Logout successful').then(function () { window.location.href = 'login.html'; })
+        }).catch(function (error) {
+
+        });
+    }
+</script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+    crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em"
+    crossorigin="anonymous"></script>
+
+</html>
