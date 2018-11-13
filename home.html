@@ -46,7 +46,7 @@
                 <div class="left">
                     <i class="zmdi zmdi-fullscreen zmdi-hc-lg" style="color: orange; padding: 10px" onclick="scanQR()"></i>
                 </div>
-                <div class="center" id="appname">Home</div>
+                <div class="center text-center" id="appname">Home</div>
                 <div class="right">
                     <i class="zmdi zmdi-power zmdi-hc-lg" style="color: orange; padding: 10px" onclick="app.showFromTemplate()"></i>
                     <template id="action-sheet.html">
@@ -71,44 +71,44 @@
 
     <template id="tab1.html">
         <ons-page id="Tab1">
-            <br>
-            <div style="text-align: center;">
+            <div style="text-align: center; margin-top: 8px;">
+                <ons-search-input placeholder="Search" onchange="search(this.value);" id="search";></ons-search-input>
                 <!-- <ons-search-input id="search" placeholder="Search" onchange="scanQR()"></ons-search-input> -->
-                <ons-search-input placeholder="Search" onchange="search(this.value);"></ons-search-input>
             </div>
-            <br>
-            <ons-carousel swipeable auto-scroll overscrollable id="carousel" style="height: 300px;">
+
+            <ons-carousel swipeable auto-scroll overscrollable id="carousel" style="height: 170px; margin-top: 8px; margin-bottom: 8px;">
                 <ons-carousel-item id="carousel1"></ons-carousel-item>
                 <ons-carousel-item id="carousel2"></ons-carousel-item>
                 <ons-carousel-item id="carousel3"></ons-carousel-item>
             </ons-carousel>
-            <br>
+
             <div id="icons"></div>
             <script id="icon_template" type="text/template">
-                <ons-row height="150px">
-                    <% categories.forEach(function(category){ %>
-                        <ons-col style="<%= category.style %>" width="33%" onclick="viewByCategory('<%= category.name %>');">
-                            <p style="text-align: center;  margin: 10px;">
-                                <i class="<%= category.icon %>"></i>
-                            </p>
-                            <p style="text-align: center;"><%= category.name %></p>
-                        </ons-col>
-                    <% }); %>
-                </ons-row>
-            </script>
-            <br>
+                    <ons-row height="150px">
+                        <% categories.forEach(function(category){ %>
+                            <ons-col style="<%= category.style %>" width="33%" onclick="viewByCategory('<%= category.name %>');">
+                                <p style="text-align: center;  margin: 10px;">
+                                    <i class="<%= category.icon %>"></i>
+                                </p>
+                                <p style="text-align: center;"><%= category.name %></p>
+                            </ons-col>
+                        <% }); %>
+                    </ons-row>
+                </script>
         </ons-page>
     </template>
 
     <template id="tab2.html">
         <ons-page id="Tab2">
-            <ons-list>
+            <ons-list modifier="inset" style="margin: 8px">
                 <ons-list-header>Shopping cart</ons-list-header>
                 <div id="cart"></div>
                 <script id="cart_template" type="text/template">
-                    <% console.log(products)
-                        products.forEach(function(product){ %>
-                        <ons-list-item>
+                    <% console.log(price);
+                        products.forEach(function(product){ 
+                        price += product.price
+                        console.log(price); %>
+                        <ons-list-item modifier="longdivider">
                             <div class="left">
                                 <img src="<%= product.photo %>" style="height: 50px;">
                             </div>
@@ -118,14 +118,24 @@
                             </div>
                             <div class="right" onclick="removeFromCart('<%= product.title %>');">
                                 <i class="zmdi zmdi-delete zmdi-hc-2x" style="color: grey"></i>
-                                </div>
+                            </div>
                         </ons-list-item>
                     <% }); %>
-                </script>
-            </ons-list>
-            <section style="padding: 8px">
-                <ons-button modifier="large" style="background-color: rgb(250, 96, 24)">PROCEED TO PAY</ons-button>
-            </section>
+                </ons-list>
+                <ons-list modifier="inset">
+                    <ons-list-item modifier="longdivider">
+                        <div class="left" style="font-size: 20px; text-align: center">
+                            SubTotal: <b style="color: rgb(250, 96, 24)">฿<%= price %></b>
+                        </div>
+                        <div class="right">
+                            <section style="padding: 8px">
+                                <ons-button modifier="large" style="background-color: rgb(250, 96, 24)">PROCEED TO PAY</ons-button>
+                            </section>
+                        </div>
+                    </ons-list-item>
+                </ons-list>
+                <br>
+            </script>
         </ons-page>
     </template>
 
@@ -134,6 +144,16 @@
             <section style="padding: 8px">
                 <ons-button modifier="large" onclick="getProduct();" style="background-color: rgb(250, 96, 24);">View all products</ons-button>
             </section>
+
+            <div id="notFound">
+                <ons-list modifier="inset" style="margin: 8px">
+                    <div class="left">
+                        <i class="zmdi zmdi-search zmdi-hc-2x" style="color: rgb(250, 96, 24)"></i>
+                    </div>
+                    <div class="center">We couldn't find any products.</div>
+                </ons-list>
+                <div style="text-align: center; color: rgb(140, 140, 140)"><b>You may also see</b></div>
+            </div>
 
             <div id="cards"></div>
             <script id="product_template" type="text/template">
@@ -174,12 +194,14 @@
         </ons-page>
     </template>
 </body>
+
 <script>
-    getHomeData();
-    getProduct(null);
-    var cart = [];
     var allProduct = [];
+    console.log(allProduct);
     var searchProduct = [];
+    var cart = [];
+    getProduct(null);
+    getHomeData();
 
     //อันนี้เป็นตัวเช็คว่าปุ่มไหนโดนกด
     document.addEventListener('prechange', function (event) {
@@ -198,7 +220,6 @@
     });
 
     function getHomeData() {
-        localStorage.clear();
         var docRef = db.collection("UI").doc("home");
 
         docRef.get().then(function (doc) {
@@ -209,6 +230,12 @@
                     let index = i + 1;
                     var style = "background: url('" + data.slides[i] + "') no-repeat center; background-size: contain;";
                     $('#carousel' + index).attr('style', style);
+                }
+                if (localStorage.getItem("code") != null) {
+                    console.log(allProduct);
+                    console.log(localStorage.getItem("code"));
+                    $('#search').val(search(localStorage.getItem("code")));
+                    localStorage.removeItem("code");
                 }
                 var icon_template = $('#icon_template').html();
                 html = ejs.render(icon_template, { categories: data.categories });
@@ -222,7 +249,7 @@
             console.log("Error getting document:", error);
         });
     }
-    
+
     function search(search) {
         var category = localStorage.setItem("name", "search");
         document.getElementById('tabbar').setActiveTab(2);
@@ -235,6 +262,10 @@
         console.log(filterItems(search));
         searchProduct = filterItems(search);
         console.log(searchProduct);
+        if(searchProduct.length < 1){
+            console.log("Empty array");
+            localStorage.setItem("searchNotFound", "notFound");
+        }
     };
 
     function scanQR() {
@@ -251,15 +282,16 @@
     });
 
     function addToCart(title) {
-        ons.notification.toast(title + 'has been added to your cart!', {
-        timeout: 2000
+        ons.notification.toast(title + ' has been added to your cart!', {
+            timeout: 2000
         });
         cart.push(title);
         getCartData();
     };
-
+    
     function getCartData() {
         var cartData = [];
+        var price = 0;
         console.log('cart: ' + cart);
         document.getElementById('cart').innerHTML = '';
         cart.forEach(function(title){
@@ -269,7 +301,7 @@
                     cartData.push(doc.data());
                 });
                 var cart_template = $('#cart_template').html();
-                html = ejs.render(cart_template, { products: cartData });
+                html = ejs.render(cart_template, { products: cartData, price: price });
                 $('#cart').html(html);
             });
         });
@@ -280,11 +312,16 @@
         document.getElementById('tabbar').setActiveTab(2);
     }
 
-    function getProduct(input) {      
-        var getAllProduct = [];  
-        var searchData = [];
-        var getCategory = [];
+    function getProduct(input) {     
+        if(localStorage.getItem("searchNotFound") == "notFound")
+        {
+            $('#notFound').show();
+        } else {
+            $('#notFound').hide();
+        }
         if (input == null) {
+            var getAllProduct = [];
+            allProduct = [];
             console.log('get all product');
             var allProductRef = db.collection("PRODUCTS");
             allProductRef.get().then(function (querySnapshot) {
@@ -294,11 +331,12 @@
                 });
                 var product_template = $('#product_template').html();
                 html = ejs.render(product_template, { products: getAllProduct });
-                // console.log(querySnapshot.docs);
                 $('#cards').html(html);
             });
+            // localStorage.setItem("array", JSON.stringify(allProduct));
+            // console.log(JSON.parse(localStorage.getItem("array"))); 
         } else if (input == 'search'){
-            
+            var searchData = [];
             console.log(searchProduct);
             searchProduct.forEach(function(title){                
                 var allProductRef = db.collection("PRODUCTS").where("title", "==", title);
@@ -313,7 +351,7 @@
                 });
             });
         } else {
-            
+            var getCategory = [];
             console.log('view by category: ' + input);
             input = input.toLowerCase();
             var allProductRef = db.collection("PRODUCTS").where("category", "==", input);
@@ -327,7 +365,9 @@
                 $('#cards').html(html);
             });
         }
-        localStorage.clear();
+        localStorage.removeItem("name");
+        localStorage.removeItem("searchNotFound");
+        console.log(localStorage.getItem("searchNotFound"));
     }
 
     function showDetail(title) {
