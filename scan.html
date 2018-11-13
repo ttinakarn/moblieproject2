@@ -7,9 +7,26 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="cordova.js"></script>
     <title>Scanner</title>
+    <style>
+    .center-div
+    {
+        position: absolute;
+        margin: auto;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 250px;
+        height: 250px;
+        border: 2px solid white;
+    }
+    </style>
 </head>
 
 <body>
+    <ons-page>    
+        <div class="center-div"></div>
+    </ons-page>
     <script>
         document.addEventListener("deviceready", onDeviceReady, false);
 
@@ -25,6 +42,7 @@
                     localStorage.setItem("code", text);
                     QRScanner.hide();
                     window.location.href = 'home.html';
+                    console.log(navigator.camera.Direction);
                 }
             }
 
