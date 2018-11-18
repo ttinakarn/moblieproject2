@@ -58,13 +58,7 @@
                 if(button == "light")
                 {
                     console.log("Light status: " + status.lightEnabled);
-                    if(status.lightEnabled == false && light == 0){
-                        QRScanner.disableLight(function (err, status) {
-                            err && console.error(err);
-                            console.log(status);
-                            light = 1;
-                        });
-                    } else if(status.lightEnabled == false && light == 1){
+                    if(status.lightEnabled == false && light == 1){
                         QRScanner.enableLight(function(err, status){
                             err && console.error(err);
                             console.log(status);
@@ -77,15 +71,7 @@
                     }
                 } else {
                     console.log("Camera status: " + status.currentCamera);
-                    if(status.currentCamera == 0 && camera == 0)
-                    {
-                        QRScanner.useBackCamera(function(err, status){
-                            err && console.error(err);
-                            console.log(status);
-                            camera = 1;
-                        });
-                    }
-                    else if(status.currentCamera == 0 && camera == 1){
+                    if(status.currentCamera == 0 && camera == 1){
                         QRScanner.useFrontCamera(function(err, status){
                             err && console.error(err);
                             console.log(status);
@@ -99,16 +85,17 @@
                     }
                 }
             });
-
             QRScanner.show();
         }   
         
         function cameraLight() {
+            light = 1;
             localStorage.setItem("button", "light");
             onDeviceReady();
         }
 
         function switchCamera(){
+            camera = 1;
             localStorage.setItem("button", "camera");
             onDeviceReady();
         }
