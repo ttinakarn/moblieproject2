@@ -20,36 +20,78 @@
         height: 250px;
         border: 2px solid white;
     }
+    .left{
+        box-sizing: border-box;
+        float: left;
+        width: 50%;
+        padding: 10px;
+    }
     </style>
 </head>
 
 <body>
-    <ons-page>    
+    <ons-page>
+        <div class="left" onclick="cameraLight()"><img src="https://firebasestorage.googleapis.com/v0/b/shopee-b3287.appspot.com/o/flash.png?alt=media&token=ea3603bc-2fcf-4f00-8891-7499f16b00c8" alt=""></div>
+        <div onclick="switchCamera()" style="text-align:right; padding: 10px;"><img src="https://firebasestorage.googleapis.com/v0/b/shopee-b3287.appspot.com/o/switch-camera.png?alt=media&token=a39f1884-7be8-400d-9400-5ef211c4270f"></div>
         <div class="center-div"></div>
     </ons-page>
     <script>
         document.addEventListener("deviceready", onDeviceReady, false);
+        
+        var light = 0;
+        var camera = 0;
 
         function onDeviceReady() {
-            // Start a scan. Scanning will continue until something is detected or
-            // `QRScanner.cancelScan()` is called.
             QRScanner.scan(displayContents);
 
             function displayContents(err, text) {
                 if (err) {
-                    // an error occurred, or the scan was canceled (error code `6`)
                 } else {
                     localStorage.setItem("code", text);
                     QRScanner.hide();
                     window.location.href = 'home.html';
-                    console.log(navigator.camera.Direction);
                 }
             }
+    
+            QRScanner.getStatus(function (status) {
+                var button = localStorage.getItem("button");
+                if(button == "light")
+                {
+                    console.log("Light status: " + status.lightEnabled);
+                    if(status.lightEnabled == false && light == 0){
+                        QRScanner.disableLight(function (err, status) {
+                            err && console.error(err);
+                            console.log(status);
+                            light = 1;
+                        });
+                    } else if(status.lightEnabled == false && light == 1){
+                        QRScanner.enableLight(function(err, status){
+                            err && console.error(err);
+                            console.log(status);
+                        });
+                    } else if(status.lightEnabled == true && light == 1){
+                        QRScanner.disableLight(function (err, status) {
+                            err && console.error(err);
+                            console.log(status);
+                        });
+                    }
+                } else {
+                    console.log("Camera status: " + status.currentCamera);
+                
+                }
+            });
 
-            // Make the webview transparent so the video preview is visible behind it.
             QRScanner.show();
-            // Be sure to make any opaque HTML elements transparent here to avoid
-            // covering the video.
+        }   
+        
+        function cameraLight() {
+            localStorage.setItem("button", "light");
+            onDeviceReady();
+        }
+
+        function switchCamera(){
+            localStorage.setItem("button", "camera");
+            onDeviceReady();
         }
     </script>
 </body>
